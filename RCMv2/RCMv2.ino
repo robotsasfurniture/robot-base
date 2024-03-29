@@ -1,6 +1,9 @@
-//   This program is template code for programming small esp32 powered wifi controlled robots.
+//   This program is based on template code for programming small esp32 powered wifi controlled robots.
 //   https://github.com/rcmgames/RCMv2
-//   for information about the electronics, see the link at the top of this page: https://github.com/RCMgames
+//   for information about rcmgames, see this page: https://github.com/RCMgames
+
+//   This program is for a robot base with 4 mecanum wheels, for the robots as furniture project.
+//   https://github.com/robotsasfurniture/robot-base
 
 // #define RCM_HARDWARE_VERSION 10 // uncomment if you have an RCMByte board
 // to use ROS mode switch the platformio project environment to one of the environments that says ROS in the name
@@ -124,17 +127,20 @@ void configWifi()
     EWD::routerPassword = "password";
     EWD::routerPort = 25210;
 
-    EWD::mode = EWD::Mode::createAP;
-    EWD::APName = "rcm0";
-    EWD::APPassword = "rcmPassword";
-    EWD::APPort = 25210;
+    // EWD::mode = EWD::Mode::createAP;
+    // EWD::APName = "rcm0";
+    // EWD::APPassword = "rcmPassword";
+    // EWD::APPort = 25210;
 }
 #else ////////////// ignore everything below this line unless you're using ROS mode/////////////////////////////////////////////
 void ROSWifiSettings()
 {
     // SSID, password, IP, port (on a computer run: sudo docker run -it --rm --net=host microros/micro-ros-agent:iron udp4 --port 8888 )
-    set_microros_wifi_transports("router", "password", "10.38.54.221", 8888);
-    nodeName = "robot-base";
+
+    // Serial.print("\nESP Board MAC Address:  "); Serial.println(WiFi.macAddress()); //go.brown.edu/wirelessdevices
+    // NOTE: HERE IS WHERE YOU TELL THE ROBOT WHAT TO CONNECT TO
+    set_microros_wifi_transports("router", "password", "192.168.43.110", 8888);
+    nodeName = "robot_base";
     // numSubscribers = 10; // change max number of subscribers
 }
 
@@ -163,7 +169,7 @@ void ROSbegin()
     batteryMsg.data = 0;
 
     // add subscribers
-    addSub(cmd_vel, geometry_msgs__msg__Twist, "/cmd_vel");
+    addSub(cmd_vel, geometry_msgs__msg__Twist, "/rcm/cmd_vel");
 }
 
 void ROSrun()
