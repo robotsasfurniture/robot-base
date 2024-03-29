@@ -16,7 +16,7 @@ JVoltageCompMeasure<10> voltageComp = JVoltageCompMeasure<10>(batteryMonitorPin,
 // set up motors and anything else you need here
 // https://github.com/joshua-8/JMotor/wiki/How-to-set-up-a-drivetrain
 const int encoderTicksPerRev = 530;
-JTwoDTransform robotToWheelScalar = { 1, 1, 1 }; // adjust until it converts robot speed in your chosen units to wheel units (increasing numbers makes robot faster)
+JTwoDTransform robotToWheelScalar = { 3.5, 4, .676 }; // adjust until it converts robot speed in your chosen units to wheel units (increasing numbers makes robot faster)
 
 #define blEncPins 36, 39
 #define flEncPins 19, 27
@@ -52,7 +52,7 @@ JMotorControllerClosed blMotor = JMotorControllerClosed(blMotorDriver, motorComp
 JMotorControllerClosed brMotor = JMotorControllerClosed(brMotorDriver, motorCompensator, brEncoder, brCtrlLoop, INFINITY, INFINITY, 0.15);
 
 JDrivetrainMecanum drivetrain = JDrivetrainMecanum(frMotor, flMotor, blMotor, brMotor, robotToWheelScalar); // drivetrain converts from robot speed to motor speeds
-JDrivetrainControllerBasic drivetrainController = JDrivetrainControllerBasic(drivetrain, { INFINITY, INFINITY, INFINITY }, { INFINITY, INFINITY, INFINITY }, { INFINITY, INFINITY, INFINITY }, false);
+JDrivetrainControllerBasic drivetrainController = JDrivetrainControllerBasic(drivetrain, { INFINITY, INFINITY, INFINITY }, { 2, 2, 8 }, { 0.05, 0.05, 0.5 }, false);
 
 JTwoDTransform velCmd = JTwoDTransform();
 
@@ -153,6 +153,7 @@ void ROSWifiSettings()
 
 // declare publishers
 declarePub(battery, std_msgs__msg__Float32);
+declarePub(odom_vel, geometry_msgs__msg__Twist);
 
 // declare subscribers and write callback functions
 declareSubAndCallback(cmd_vel, geometry_msgs__msg__Twist);
@@ -170,6 +171,8 @@ void ROSbegin()
 
     // add subscribers
     addSub(cmd_vel, geometry_msgs__msg__Twist, "/rcm/cmd_vel");
+
+    createPublisher(odom_vel, geometry_msgs__msg__Twist, "/rcm/odom_vel");
 }
 
 void ROSrun()
@@ -178,6 +181,11 @@ void ROSrun()
     // you can add more publishers here
     batteryMsg.data = voltageComp.getSupplyVoltage();
     publish(battery);
+
+    odom_velMsg.linear.x = drivetrainController.getVel().x;
+    odom_velMsg.linear.y = drivetrainController.getVel().y;
+    odom_velMsg.angular.z = drivetrainController.getVel().theta;
+    publish(odom_vel);
 }
 #endif
 
